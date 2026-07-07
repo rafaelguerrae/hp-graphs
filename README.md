@@ -5,25 +5,6 @@
 
 ---
 
-## Project structure
-
-```
-hp-graphs/
-├── data/                   ← Source datasets (HPD)
-│   ├── en_train_set.json
-│   └── en_test_set.json
-├── src/
-│   ├── extract.py          ← Step 1: build graph JSON from the datasets
-│   └── view.py             ← Step 2: render a PNG network graph
-├── output/                 ← Generated files (gitignored)
-├── plans/                  ← Notes and design docs (gitignored)
-├── requirements.txt
-├── Makefile
-└── README.md
-```
-
----
-
 ## Quick start
 
 ### 1 — Install dependencies
@@ -65,21 +46,3 @@ The rendered PNGs land in `output/`.
 | `make view-all` | Render all four graphs |
 | `make all` | Full pipeline: extract everything + render everything |
 | `make clean` | Delete all generated files in `output/` |
-
-## Visual encoding
-
-| Property | Mapped to |
-|---|---|
-| Node size | `appearances` (log-scaled) |
-| Node colour | Relation type to Harry (blue=friend, red=enemy, green=family, purple=teacher, grey=acquaintance) |
-| Edge thickness | Composite relationship strength |
-| Edge opacity | Co-occurrence frequency |
-
----
-
-## Dependencies
-
-| Package | Purpose |
-|---|---|
-| `networkx` | Graph data structure + layout algorithms |
-| `matplotlib` | Rendering to PNG |
