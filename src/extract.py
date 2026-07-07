@@ -61,14 +61,18 @@ def edge_weight(co_occurrences, affection=None, familiarity=None):
       base   = log(co_occurrences + 1)
       bonus  = avg(norm_affection, norm_familiarity)  — Harry edges only
       weight = base * (1 + bonus)
+
+    Returns:
+        (weight: float, components: dict)
+        components keys: 'base', 'bonus'  (bonus is 0.0 for non-Harry edges)
     """
     base = math.log(co_occurrences + 1)
     if affection is not None and familiarity is not None:
         norm_aff = (affection + 10) / 20   # -10..10 → 0..1
         norm_fam = familiarity / 10         #   0..10 → 0..1
         bonus = (norm_aff + norm_fam) / 2
-        return round(base * (1 + bonus), 4)
-    return round(base, 4)
+        return round(base * (1 + bonus), 4), {"base": round(base, 4), "bonus": round(bonus, 4)}
+    return round(base, 4), {"base": round(base, 4), "bonus": 0.0}
 
 
 def extract(sessions, top_chars=None, min_cooccur=1):
@@ -151,7 +155,9 @@ def extract(sessions, top_chars=None, min_cooccur=1):
             edge["familiarity"] = rel["familiarity"]
             edge["relation_type"] = rel["relation_type"]
 
-        edge["weight"] = edge_weight(count, edge.get("affection"), edge.get("familiarity"))
+        w, components = edge_weight(count, edge.get("affection"), edge.get("familiarity"))
+        edge["weight"] = w
+        edge["weight_components"] = components
         edges.append(edge)
 
     edges.sort(key=lambda e: -e["weight"])
@@ -223,7 +229,15 @@ def main():
     print("\nTop 10 strongest edges:")
     for e in edges[:10]:
         label = f"[{e['relation_type']}]" if "relation_type" in e else ""
-        print(f"  {e['source']:15s} <-> {e['target']:15s}  weight={e['weight']:.3f}  co_occur={e['co_occurrences']}  {label}")
+        comps = e.get("weight_components", {})
+        base  = comps.get("base", 0.0)
+        bonus = comps.get("bonus", 0.0)
+        print(
+            f"  {e['source']:15s} <-> {e['target']:15s}  "
+            f"weight={e['weight']:.3f}  "
+            f"(base={base:.3f} bonus={bonus:.3f})  "
+            f"co_occur={e['co_occurrences']}  {label}"
+        )
 
 
 if __name__ == "__main__":

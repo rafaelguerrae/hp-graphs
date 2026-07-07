@@ -1,9 +1,6 @@
 # hp-graphs
 
-> **Comunicação e Redes** — college project  
-> Visualising Harry Potter character relationships as network graphs across three story periods, using the [HP Dialogue Dataset (HPD)](https://nuochenpku.github.io/HPD.github.io/).
-
----
+**Comunicação e Redes** — Visualising Harry Potter character relationships as network graphs across three story periods, using the [HP Dialogue Dataset (HPD)](https://nuochenpku.github.io/HPD.github.io/).
 
 ## Quick start
 
@@ -13,8 +10,6 @@ Requires **Python 3.10+**.
 
 ```bash
 make install
-# or manually:
-python3 -m pip install -r requirements.txt
 ```
 
 ### 2 — Run the pipeline
@@ -23,16 +18,11 @@ python3 -m pip install -r requirements.txt
 # Extract + render the full-series graph (all books)
 make extract
 make view
-
-# Or do everything in one shot (all books + 3 time periods):
-make all
 ```
 
 The rendered PNGs land in `output/`.
 
----
-
-## All make commands
+## Commands
 
 | Command | What it does |
 |---|---|
