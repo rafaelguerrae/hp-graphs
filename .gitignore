@@ -1,2 +1,4 @@
 /output
 /plans
+/.venv
+.vscode
