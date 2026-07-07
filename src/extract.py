@@ -39,7 +39,10 @@ from itertools import combinations
 # Config
 # ---------------------------------------------------------------------------
 
-DATA_DIR   = os.path.dirname(os.path.abspath(__file__))
+SRC_DIR    = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.dirname(SRC_DIR)
+DATA_DIR   = os.path.join(PROJECT_DIR, "data")
+OUTPUT_DIR = os.path.join(PROJECT_DIR, "output")
 TRAIN_FILE = os.path.join(DATA_DIR, "en_train_set.json")
 TEST_FILE  = os.path.join(DATA_DIR, "en_test_set.json")
 
@@ -261,6 +264,23 @@ def extract(sessions, top_chars=None, min_cooccur=1):
 # CLI
 # ---------------------------------------------------------------------------
 
+def build_output_name(books, top_chars, min_cooccur):
+    """
+    Build a descriptive filename so runs never silently overwrite each other.
+
+    Examples:
+      hpd_graph_all_top40_minco2.json
+      hpd_graph_Book1-Book2_top30_minco1.json
+    """
+    scope = "-".join(sorted(books)) if books else "all"
+    parts = ["hpd_graph", scope]
+    if top_chars:
+        parts.append(f"top{top_chars}")
+    if min_cooccur and min_cooccur > 1:
+        parts.append(f"minco{min_cooccur}")
+    return "_".join(parts) + ".json"
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Extract HPD character relationship graph data."
@@ -281,8 +301,13 @@ def parse_args():
         help="Minimum shared sessions required for an edge. Default: 1.",
     )
     parser.add_argument(
-        "--out", default="graph_data.json", metavar="FILE",
-        help="Output JSON file path. Default: graph_data.json",
+        "--out", default=None, metavar="FILE",
+        help=(
+            "Output JSON path. Absolute paths are used as-is; relative paths "
+            "are placed inside output/. "
+            "Default: auto-generated descriptor inside output/ "
+            "(e.g. hpd_graph_all_top40_minco2.json)."
+        ),
     )
     return parser.parse_args()
 
@@ -302,10 +327,21 @@ def main():
         min_cooccur=args.min_cooccur,
     )
 
-    out_path = (
-        args.out if os.path.isabs(args.out)
-        else os.path.join(DATA_DIR, args.out)
-    )
+    # Resolve output path
+    if args.out is None:
+        # Auto-generate a descriptive filename inside output/
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        out_path = os.path.join(
+            OUTPUT_DIR,
+            build_output_name(args.books, args.top_chars, args.min_cooccur),
+        )
+    elif os.path.isabs(args.out):
+        out_path = args.out
+    else:
+        # Relative path → place it inside output/
+        os.makedirs(OUTPUT_DIR, exist_ok=True)
+        out_path = os.path.join(OUTPUT_DIR, args.out)
+
     result = {
         "meta": {
             "books":       args.books or "all",
