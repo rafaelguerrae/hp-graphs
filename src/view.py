@@ -14,32 +14,28 @@ PROJECT_DIR = os.path.dirname(SRC_DIR)
 DEFAULT_IN = os.path.join(PROJECT_DIR, "output", "hpd_graph_all_top40_minco2.json")
 DEFAULT_OUT = os.path.join(PROJECT_DIR, "output", "hpd_graph_snapshot.png")
 
-# ── Colour palette ────────────────────────────────────────────────────────────
-# Tuned for light (white) backgrounds; rich, saturated hues so each relation
-# type is immediately distinguishable even at small sizes.
 RELATION_COLOURS = {
-    "friend":           "#1D4ED8",   # blue-700
-    "classmate":        "#0369A1",   # sky-700
-    "teammate":         "#4338CA",   # indigo-700
-    "colleague":        "#0F766E",   # teal-700  ← distinct from blues
-    "family":           "#15803D",   # green-700
-    "immediate family": "#166534",   # green-800
-    "teacher":          "#7E22CE",   # purple-700
-    "opponent":         "#C2410C",   # orange-700
-    "acquaintance":     "#475569",   # slate-600
-    "enemy":            "#B91C1C",   # red-700
-    "lover":            "#BE185D",   # pink-700
+    "friend":           "#1D4ED8",
+    "classmate":        "#0369A1",
+    "teammate":         "#4338CA",
+    "colleague":        "#0F766E",
+    "family":           "#15803D",
+    "immediate family": "#166534",
+    "teacher":          "#7E22CE",
+    "opponent":         "#C2410C",
+    "acquaintance":     "#475569",
+    "enemy":            "#B91C1C",
+    "lover":            "#BE185D",
 }
 
-HARRY_COLOUR        = "#D97706"   # amber-600  (darker for light bg)
-NON_HARRY_EDGE      = "#CBD5E1"   # slate-300  (light grey, visible on white)
-DEFAULT_NODE_COLOUR = "#64748B"   # slate-500
-BG_COLOUR           = "#FFFFFF"   # white
-FIG_COLOUR          = "#F1F5F9"   # slate-100  (very light surround)
-TEXT_COLOUR         = "#1E293B"   # slate-800
-MUTED_COLOUR        = "#64748B"   # slate-500
+HARRY_COLOUR        = "#D97706"
+NON_HARRY_EDGE      = "#CBD5E1"
+DEFAULT_NODE_COLOUR = "#64748B"
+BG_COLOUR           = "#FFFFFF"
+FIG_COLOUR          = "#F1F5F9"
+TEXT_COLOUR         = "#1E293B"
+MUTED_COLOUR        = "#64748B"
 
-# Clockwise grouping order used by radial_layout to cluster relation types
 RELATION_ORDER = [
     "friend", "classmate", "teammate", "colleague", "lover",
     "family", "immediate family", "teacher",
@@ -51,9 +47,6 @@ PERIOD_LABELS = {
     ("Book3", "Book4", "Book5"):     "Books 3–5: Middle Story",
     ("Book6", "Book7"):              "Books 6–7: Late Story",
 }
-
-
-# ── Helpers ───────────────────────────────────────────────────────────────────
 
 def period_label(books):
     if not books or books == "all":
@@ -85,8 +78,6 @@ def load_graph(json_path):
         )
     return G, data["meta"]
 
-
-# ── Layout ────────────────────────────────────────────────────────────────────
 
 def radial_layout(G, center="Harry"):
     """
@@ -135,9 +126,6 @@ def radial_layout(G, center="Harry"):
 
     return pos
 
-
-# ── Visual property helpers ───────────────────────────────────────────────────
-
 def node_sizes(G, base=180, scale=1800):
     """Log-scaled node sizes; capped so Harry isn't overwhelming."""
     return [
@@ -157,16 +145,6 @@ def node_colours(G):
 
 
 def edge_visuals(G, min_weight=0.0):
-    """
-    Split edges into two layers:
-
-    - Harry edges: coloured by relation type, thickness driven by weight.
-    - Non-Harry edges: uniform faint grey, very thin — context only.
-
-    Returns:
-        harry  = (edge_list, widths, colours)
-        others = (edge_list, widths)
-    """
     harry_weights = [
         d["weight"] for u, v, d in G.edges(data=True)
         if "Harry" in (u, v) and d["weight"] >= min_weight
@@ -212,9 +190,6 @@ def build_legend():
         handles.append(mpatches.Patch(color=colour, label=rt.capitalize()))
     return handles
 
-
-# ── Renderer ──────────────────────────────────────────────────────────────────
-
 def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
     title = period_label(meta.get("books"))
     center = "Harry" if "Harry" in G else list(G.nodes())[0]
@@ -226,7 +201,6 @@ def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
     ax.set_facecolor(BG_COLOUR)
     ax.set_axis_off()
 
-    # ── Guide circles (subtle concentric rings to reinforce radial structure) ─
     for r, alpha in [(0.55, 0.12), (1.05, 0.08)]:
         circle = plt.Circle(
             (0, 0), r, color="#94A3B8", fill=False,
@@ -234,7 +208,6 @@ def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
         )
         ax.add_patch(circle)
 
-    # ── Background (non-Harry) edges first ───────────────────────────────────
     (harry_edges, harry_widths, harry_colours), (other_edges, other_widths) = \
         edge_visuals(G, min_weight)
 
@@ -245,7 +218,6 @@ def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
                 color=NON_HARRY_EDGE, linewidth=lw, alpha=0.55,
                 solid_capstyle="round", zorder=1)
 
-    # ── Harry edges (foreground, coloured) ───────────────────────────────────
     for (u, v), lw, col in zip(harry_edges, harry_widths, harry_colours):
         x0, y0 = pos[u]
         x1, y1 = pos[v]
@@ -253,12 +225,10 @@ def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
                 color=col, linewidth=lw, alpha=0.82,
                 solid_capstyle="round", zorder=2)
 
-    # ── Nodes ─────────────────────────────────────────────────────────────────
     n_sizes   = node_sizes(G)
     n_colours = node_colours(G)
     nodes_list = list(G.nodes())
 
-    # Soft amber glow behind Harry
     if center in G:
         harry_idx   = nodes_list.index(center)
         harry_sz    = n_sizes[harry_idx]
@@ -277,7 +247,6 @@ def render(G, meta, out_path, min_weight=0.0, show=False, label_top=8):
     )
     nodes_pc.set_zorder(4)
 
-    # ── Labels ────────────────────────────────────────────────────────────────
     app_vals = [G.nodes[n].get("appearances", 1) for n in G.nodes()]
     max_app  = max(app_vals) if app_vals else 1
     for node, (x, y) in pos.items():
