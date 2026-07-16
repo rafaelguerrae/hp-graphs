@@ -87,7 +87,7 @@ def extract(sessions, top_chars=None, min_cooccur=1):
     })
 
     for session in sessions.values():
-        speakers = session.get("speakers", [])
+        speakers = [sp.strip() for sp in session.get("speakers", [])]
         for sp in speakers:
             appearances[sp] += 1
 
@@ -96,10 +96,10 @@ def extract(sessions, top_chars=None, min_cooccur=1):
             cooccur[frozenset([a, b])] += 1
 
         for char, rel_data in session.get("relations with Harry", {}).items():
-            if char == "Harry":
+            if char.strip() == "Harry":
                 continue
             aff, fam, dominant = parse_relation(rel_data)
-            acc = harry_rel_acc[char]
+            acc = harry_rel_acc[char.strip()]
             if aff is not None:
                 acc["affection_sum"] += aff
             if fam is not None:

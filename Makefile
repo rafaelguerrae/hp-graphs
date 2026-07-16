@@ -19,6 +19,7 @@ SNAPSHOT_LATE  := $(OUT)/hpd_graph_Book6-Book7_top40_minco2.json
 
 .PHONY: help install setup extract extract-all extract-periods \
         view view-all view-early view-mid view-late \
+        export export-all export-periods \
         all clean venv
 
 # ------------------------------------------------------------
@@ -38,6 +39,10 @@ help:
 	@echo "  make view-mid           Render Books 3-5 graph"
 	@echo "  make view-late          Render Books 6-7 graph"
 	@echo "  make view-all           Render all four graphs"
+	@echo ""
+	@echo "  make export             Export full-series graph → output/*.gexf (Gephi)"
+	@echo "  make export-periods     Export early / mid / late snapshots → .gexf"
+	@echo "  make export-all         Export all four snapshots → .gexf"
 	@echo ""
 	@echo "  make all                Full pipeline: extract + render everything"
 	@echo "  make clean              Remove generated output files"
@@ -129,6 +134,27 @@ view-late: $(SNAPSHOT_LATE) $(VENV)/bin/python3
 view-all: view view-early view-mid view-late
 
 # ------------------------------------------------------------
+# Export — convert JSON snapshots to GEXF for Gephi
+# ------------------------------------------------------------
+
+export: $(SNAPSHOT_ALL) $(VENV)/bin/python3
+	$(PYTHON) $(SRC)/export_gephi.py \
+		--snapshot $(OUT)/$(if $(BOOKS),$(_FNAME),hpd_graph_all_top$(TOP)$(if $(filter-out 1,$(MINCO)),_minco$(MINCO),).json)
+
+export-early: $(SNAPSHOT_EARLY) $(VENV)/bin/python3
+	$(PYTHON) $(SRC)/export_gephi.py --snapshot $(SNAPSHOT_EARLY)
+
+export-mid: $(SNAPSHOT_MID) $(VENV)/bin/python3
+	$(PYTHON) $(SRC)/export_gephi.py --snapshot $(SNAPSHOT_MID)
+
+export-late: $(SNAPSHOT_LATE) $(VENV)/bin/python3
+	$(PYTHON) $(SRC)/export_gephi.py --snapshot $(SNAPSHOT_LATE)
+
+export-periods: export-early export-mid export-late
+
+export-all: export export-periods
+
+# ------------------------------------------------------------
 # Full pipeline
 # ------------------------------------------------------------
 all: install extract-all extract-periods view-all
@@ -137,7 +163,7 @@ all: install extract-all extract-periods view-all
 # Cleanup
 # ------------------------------------------------------------
 clean:
-	rm -f $(OUT)/hpd_graph_*.json $(OUT)/hpd_graph_*.png
+	rm -f $(OUT)/hpd_graph_*.json $(OUT)/hpd_graph_*.png $(OUT)/hpd_graph_*.gexf
 	@echo "output/ cleaned."
 
 clean-venv:

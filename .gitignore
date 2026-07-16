@@ -2,3 +2,4 @@
 /plans
 /.venv
 .vscode
+__pycache__

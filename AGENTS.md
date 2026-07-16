@@ -34,6 +34,22 @@ make view-all                            # render all four at once
 make view BOOKS='Book1 Book2'            # render a custom snapshot
 ```
 
+## Export — produce GEXF files for Gephi
+
+```bash
+make export                              # export full-series snapshot → .gexf
+make export-periods                      # early / mid / late snapshots → .gexf
+make export-all                          # export all four snapshots
+make export BOOKS='Book1 Book2'          # export a custom snapshot
+```
+
+Output lands alongside the source JSON in `output/`:
+- `hpd_graph_all_top40_minco2.gexf`
+- `hpd_graph_Book1-Book2_top40_minco2.gexf`
+- etc.
+
+Open the resulting `.gexf` in Gephi via **File → Open**.
+
 ## Full pipeline
 
 ```bash
@@ -43,7 +59,7 @@ make all              # extract everything + render everything
 ## Cleanup
 
 ```bash
-make clean            # remove generated output files (JSON + PNG)
+make clean            # remove generated output files (JSON + PNG + GEXF)
 make clean-venv       # remove the .venv directory
 ```
 
@@ -68,6 +84,14 @@ make clean-venv       # remove the .venv directory
 .venv/bin/python3 src/view.py --min-weight 3.0
 .venv/bin/python3 src/view.py --out output/my_graph.png
 .venv/bin/python3 src/view.py --show
+```
+
+### src/export_gephi.py
+
+```bash
+.venv/bin/python3 src/export_gephi.py
+.venv/bin/python3 src/export_gephi.py --snapshot output/hpd_graph_Book1-Book2_top40_minco2.json
+.venv/bin/python3 src/export_gephi.py --out output/my_graph.gexf
 ```
 
 ---
